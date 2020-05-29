@@ -8,14 +8,16 @@ import java.util.Scanner;
 import java.lang.String;
 import java.util.stream.Collectors;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class lab3 {
+public class lab5 {
 	static int[] regList;
 	static int[] dataMem;
-	static int pc;
+    static int pc;
+    static int pointListLength;
 
     public static void main(String[] args) 
     {
@@ -34,6 +36,8 @@ public class lab3 {
         Arrays.fill(dataMem, 0);
         
         pc = 0;
+
+        pointListLength = 0;
         
         //This is an array of instructions, index is pc
         List<instructionObject> program = new ArrayList<instructionObject>();
@@ -172,6 +176,7 @@ public class lab3 {
             int tempInt;
             switch (temp.format) {
                 case "R":
+                    //System.out.println(lineList.get(i).get(0));
                     temp.registerS = Integer.parseInt(registerTable.get(lineList.get(i).get(2)), 2);
                     temp.registerT = Integer.parseInt(registerTable.get(lineList.get(i).get(3)), 2);
                     temp.registerD = Integer.parseInt(registerTable.get(lineList.get(i).get(1)), 2);
@@ -296,6 +301,20 @@ public class lab3 {
                         System.out.println();
                         break;
 
+                    case "o":
+                        try{
+                            FileWriter csvWriter = new FileWriter("coordinates.csv");
+                            for(int i=0;i<pointListLength;i+=2){
+                                csvWriter.write(dataMem[i]+","+dataMem[i+1]+"\n");
+                            }
+                            csvWriter.close();
+                        }
+                        catch(IOException e){
+                            e.printStackTrace();
+                            return;
+                        }
+                        break;
+
                     case "s":
                     		//determine fate of invalid PC address
                     		int tempint = 1;
@@ -384,7 +403,21 @@ public class lab3 {
                             regDump(regList, pc);
                             System.out.println();
                             break;
-    
+
+                        case "o":
+                            try{
+                                FileWriter csvWriter = new FileWriter("coordinates.csv");
+                                for(int i=0;i<pointListLength;i+=2){
+                                    csvWriter.write(dataMem[i]+","+dataMem[i+1]+"\n");
+                                }
+                                csvWriter.close();
+                            }
+                            catch(IOException e){
+                                e.printStackTrace();
+                                return;
+                            }
+                            break;
+                        
                         case "s":
                                 //determine fate of invalid PC address
                                 int tempint = 1;
@@ -524,6 +557,7 @@ public class lab3 {
 
                     	case "sw":
                         dataMem[regList[instruction.registerS] + instruction.immediate] = regList[instruction.registerT];
+                        pointListLength += 1;
                     		return;
 
                     	case "j":
@@ -534,7 +568,8 @@ public class lab3 {
                     		pc = regList[instruction.registerS] - 1;
                     		return;
 
-                    	case "jal":
+                        case "jal":
+                            //System.out.println("here");
                     		regList[31] = pc + 1;
                     		pc = instruction.immediate - 1;
                     		return;
