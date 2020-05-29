@@ -12,12 +12,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 
 public class lab5 {
 	static int[] regList;
 	static int[] dataMem;
+    static int[] predictList;
     static int pc;
     static int pointListLength;
+    static List<Integer> ghrList;
+    static int correct;
+    static int incorrect;
+    static int ghrsize;
 
     public static void main(String[] args) 
     {
@@ -35,9 +41,16 @@ public class lab5 {
         dataMem = new int[8192];
         Arrays.fill(dataMem, 0);
         
+        ghrList = new ArrayList<Integer>(8);
+        predictList = new int[256];
+        Arrays.fill(predictList, 0);
+
         pc = 0;
 
         pointListLength = 0;
+        correct = 0;
+        incorrect = 0;
+
         
         //This is an array of instructions, index is pc
         List<instructionObject> program = new ArrayList<instructionObject>();
@@ -99,13 +112,29 @@ public class lab5 {
         //instructionObject i = new instructionObject("1", "1", "1", "1");
         //System.out.println(i.name);
         //System.out.println(i.register1);
+
         if(args.length == 0){
             System.out.println("Argument mismatch");
-            System.out.println("Usage: lab3 input.asm [script]");
+            System.out.println("Usage: lab5 input.asm [script] [GHRlen]");
             return;
         }
+        if (args.length == 2 && args[1].contains(".script"))
+        {
+            ghrsize = 2;
+        } else if (args.length == 2) {
+            ghrsize = Integer.parseInt(args[1]);
+        } else if (args.length == 3) {
+            ghrsize = Integer.parseInt(args[2]);
+        } else {
+            ghrsize = 2;
+        }
 
-	    File asmFile = new File(args[0]);
+        for(int i = 0; i < ghrsize; i++)
+        {
+            ghrList.add(0,0);
+        }
+
+        File asmFile = new File(args[0]);
         int address = 0;
 
 	    try(Stream<String> instructions = Files.lines(asmFile.toPath())){
@@ -263,7 +292,7 @@ public class lab5 {
 
         }
         catch(IOException ex){
-
+                System.out.println("nani1");
         }
 
 
@@ -272,7 +301,7 @@ public class lab5 {
         String command;
         String[] commandArg;
 
-        if(args.length<2 && args.length!=0){
+        if((args.length<2 && args.length!=0) || args.length==2 && !(args[1].contains(".script"))){
             //Do prompt
             while(true){ 
                 System.out.print("mips> ");
@@ -343,6 +372,16 @@ public class lab5 {
                         System.out.println();
                         break;
 
+                    case "b":
+                        if(incorrect + correct != 0){
+                                System.out.println((float)correct/((float)incorrect + (float)correct));
+                                System.out.println((float)correct);
+                                System.out.println((float)incorrect);
+                            } else {
+                                System.out.println("0");
+                            }
+                        break;
+
                     case "m":
                         if(commandArg.length > 3 || commandArg.length < 3){
                             System.out.println("Incorrect Formatting: type 'h' for help");
@@ -370,7 +409,7 @@ public class lab5 {
             }
 
         }
-        else if(args.length == 2){
+        else if(args.length >= 2){
             //script read start here
             File scriptFile = new File(args[1]);
 
@@ -438,6 +477,16 @@ public class lab5 {
                             System.out.println();
                             break;
     
+                        case "b":
+                            if(incorrect + correct != 0){
+                                System.out.println((float)correct/((float)incorrect + (float)correct));
+                                System.out.println((float)correct);
+                                System.out.println((float)incorrect);
+                            } else {
+                                System.out.println("0");
+                            }
+                            break;
+
                         case "r":
                             while(pc < program.size()) {
                                 step(program.get(pc));
@@ -473,13 +522,14 @@ public class lab5 {
                 
             }
             catch(IOException exs){
+                System.out.println("nani");
 
             }
 
         }
         else{
             System.out.println("Argument mismatch");
-            System.out.println("Usage: lab3 input.asm [script]");
+            System.out.println("Usage: lab5 input.asm [script]");
         }
     }
 
@@ -543,13 +593,124 @@ public class lab5 {
                         regList[instruction.registerD] = (regList[instruction.registerS] < regList[instruction.registerT]) ? 1:0;
                     		return;
 
-                    	case "beq":
+                    	case "beq": {
+                        //predict here
+                        //ghrListConversion = ghrList -> Reverse -> String -> Int from Binary
+                        //System.out.println(ghrsize);
+                        String listString = "";
+                        for(int j = 0; j < ghrsize; j++)
+                        {
+                            //listString += ghrList.get(ghrsize - j - 1);
+                            listString += ghrList.get(j);
+                        }
+                        //String listString = ghrList.stream().sorted(Collections.reverseOrder()).map(x -> Integer.toString(x)).collect(Collectors.joining(""));
+                        int ghrListConversion = Integer.parseInt(listString, 2);
+                        System.out.println(ghrListConversion);
+                        int prediction = predictList[ghrListConversion];
                         pc = (regList[instruction.registerS] == regList[instruction.registerT]) ? pc + instruction.immediate : pc;
+                        int right = 0; //(regList[instruction.registerS] == regList[instruction.registerT] && prediction >= 2) ? 1:-1;
+                        if(prediction >= 2)
+                        {
+                            if(regList[instruction.registerS] == regList[instruction.registerT])
+                            {
+                                correct += 1;
+                                right = 1;
+                            } else {
+                                incorrect += 1;
+                                right = -1;
+
+                            }
+                        }
+                        else
+                        {
+                            if(regList[instruction.registerS] != regList[instruction.registerT])
+                            {
+                                correct += 1;
+                                right = 1;
+
+                            } else {
+                                incorrect += 1;
+                                right = -1;
+
+                            }
+                        }
+                        System.out.println(correct);
+                        System.out.println(incorrect);
+                        //we must update predictList[ghrListConversion] 0 to 3
+                        predictList[ghrListConversion] += right;
+                        if(predictList[ghrListConversion] == -1){
+                            predictList[ghrListConversion] = 0;
+                        }
+                        if(predictList[ghrListConversion] == 4){
+                            predictList[ghrListConversion] = 3;
+                        }
+                        //right
+                        ghrList.add(0, regList[instruction.registerS] == regList[instruction.registerT] ? 1:0);
+                        ghrList.remove(ghrsize);
                     		return;
+                        }
+                            
 
                     	case "bne":
+                        {                            
+                        System.out.println(ghrList);
+                        String listString = "";
+                        for(int j = 0; j < ghrsize; j++)
+                        {
+                            //listString += ghrList.get(ghrsize - j - 1);
+                            listString += ghrList.get(j);
+                        }
+                        System.out.println(listString);
+
+                        //String listString = ghrList.stream().sorted(Collections.reversed()).map(x -> Integer.toString(x)).collect(Collectors.joining(""));
+                        int ghrListConversion = Integer.parseInt(listString, 2);
+                        System.out.println(ghrListConversion);
+                        int prediction = predictList[ghrListConversion];
                         pc = (regList[instruction.registerS] != regList[instruction.registerT]) ? pc + instruction.immediate : pc;
-                    		return;
+                    	int right = 0; //(regList[instruction.registerS] == regList[instruction.registerT] && prediction >= 2) ? 1:-1;
+                        if(prediction >= 2)
+                        {
+                            if(regList[instruction.registerS] != regList[instruction.registerT])
+                            {
+                                correct += 1;
+                                right = 1;
+                            } else {
+                                incorrect += 1;
+                                right = -1;
+
+                            }
+                        }
+                        else
+                        {
+                            if(regList[instruction.registerS] == regList[instruction.registerT])
+                            {
+                                correct += 1;
+                                right = 1;
+
+                            } else {
+                                incorrect += 1;
+                                right = -1;
+
+                            }
+                        }
+                        
+                        System.out.println("Taken: " + (regList[instruction.registerS] != regList[instruction.registerT]));
+                        System.out.println("Prediction: " + prediction);
+                        System.out.println("right: " + right);
+                        //System.out.println(incorrect);
+                        //we must update predictList[ghrListConversion] 0 to 3
+                        predictList[ghrListConversion] += right;
+                        if(predictList[ghrListConversion] == -1){
+                            predictList[ghrListConversion] = 0;
+                        }
+                        if(predictList[ghrListConversion] == 4){
+                            predictList[ghrListConversion] = 3;
+                        }
+                        ghrList.add(0, regList[instruction.registerS] != regList[instruction.registerT] ? 1:0);
+                        ghrList.remove(ghrsize);
+                            return;
+                         }
+
 
                     	case "lw":
                         regList[instruction.registerT] = dataMem[regList[instruction.registerS] + instruction.immediate];
