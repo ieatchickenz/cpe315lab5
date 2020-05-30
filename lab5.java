@@ -374,9 +374,11 @@ public class lab5 {
 
                     case "b":
                         if(incorrect + correct != 0){
-                                System.out.println((float)correct/((float)incorrect + (float)correct));
-                                System.out.println((float)correct);
-                                System.out.println((float)incorrect);
+                            int total = correct + incorrect;
+                            String percent = String.format("%.02f",((float)correct/(float)total)*100);
+                            System.out.println();
+                            System.out.println("accuracy " + percent + "% (" + correct + " correct predictions, " + total + " predictions)");
+                            System.out.println();
                             } else {
                                 System.out.println("0");
                             }
@@ -479,9 +481,11 @@ public class lab5 {
     
                         case "b":
                             if(incorrect + correct != 0){
-                                System.out.println((float)correct/((float)incorrect + (float)correct));
-                                System.out.println((float)correct);
-                                System.out.println((float)incorrect);
+                                int total = correct + incorrect;
+                                String percent = String.format("%.02f",((float)correct/(float)total)*100);
+                                System.out.println();
+                                System.out.println("accuracy " + percent + "% (" + correct + " correct predictions, " + total + " predictions)");
+                                System.out.println();
                             } else {
                                 System.out.println("0");
                             }
@@ -605,7 +609,7 @@ public class lab5 {
                         }
                         //String listString = ghrList.stream().sorted(Collections.reverseOrder()).map(x -> Integer.toString(x)).collect(Collectors.joining(""));
                         int ghrListConversion = Integer.parseInt(listString, 2);
-                        System.out.println(ghrListConversion);
+                        //System.out.println(ghrListConversion);
                         int prediction = predictList[ghrListConversion];
                         pc = (regList[instruction.registerS] == regList[instruction.registerT]) ? pc + instruction.immediate : pc;
                         int right = 0; //(regList[instruction.registerS] == regList[instruction.registerT] && prediction >= 2) ? 1:-1;
@@ -626,16 +630,16 @@ public class lab5 {
                             if(regList[instruction.registerS] != regList[instruction.registerT])
                             {
                                 correct += 1;
-                                right = 1;
+                                right = -1;
 
                             } else {
                                 incorrect += 1;
-                                right = -1;
+                                right = 1;
 
                             }
                         }
-                        System.out.println(correct);
-                        System.out.println(incorrect);
+                        //System.out.println(correct);
+                        //System.out.println(incorrect);
                         //we must update predictList[ghrListConversion] 0 to 3
                         predictList[ghrListConversion] += right;
                         if(predictList[ghrListConversion] == -1){
@@ -653,18 +657,18 @@ public class lab5 {
 
                     	case "bne":
                         {                            
-                        System.out.println(ghrList);
+                        //System.out.println(ghrList);
                         String listString = "";
                         for(int j = 0; j < ghrsize; j++)
                         {
                             //listString += ghrList.get(ghrsize - j - 1);
                             listString += ghrList.get(j);
                         }
-                        System.out.println(listString);
+                        //System.out.println(listString);
 
                         //String listString = ghrList.stream().sorted(Collections.reversed()).map(x -> Integer.toString(x)).collect(Collectors.joining(""));
                         int ghrListConversion = Integer.parseInt(listString, 2);
-                        System.out.println(ghrListConversion);
+                        //System.out.println(ghrListConversion);
                         int prediction = predictList[ghrListConversion];
                         pc = (regList[instruction.registerS] != regList[instruction.registerT]) ? pc + instruction.immediate : pc;
                     	int right = 0; //(regList[instruction.registerS] == regList[instruction.registerT] && prediction >= 2) ? 1:-1;
@@ -685,18 +689,18 @@ public class lab5 {
                             if(regList[instruction.registerS] == regList[instruction.registerT])
                             {
                                 correct += 1;
-                                right = 1;
+                                right = -1;
 
                             } else {
                                 incorrect += 1;
-                                right = -1;
+                                right = 1;
 
                             }
                         }
                         
-                        System.out.println("Taken: " + (regList[instruction.registerS] != regList[instruction.registerT]));
-                        System.out.println("Prediction: " + prediction);
-                        System.out.println("right: " + right);
+                        //System.out.println("Taken: " + (regList[instruction.registerS] != regList[instruction.registerT]));
+                        //System.out.println("Prediction: " + prediction);
+                        //System.out.println("right: " + right);
                         //System.out.println(incorrect);
                         //we must update predictList[ghrListConversion] 0 to 3
                         predictList[ghrListConversion] += right;
